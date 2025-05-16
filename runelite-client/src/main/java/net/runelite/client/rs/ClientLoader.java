@@ -256,6 +256,7 @@ public class ClientLoader implements Supplier<Client>
 		classLoaderProps.put("initial_jar", patchedInitialJarName);
 
 		Map<String, String> appletProps = rsConfig.getAppletProperties();
+		log.info("Applying RSPS-specific overrides to applet parameters. Target Host={}, Port={}, WorldID={}, Revision={}",
 				RSPS_HOST, RSPS_PORT, RSPS_WORLD_ID, RSPS_REVISION);
 
 		// Log original parameters before overriding for debugging
@@ -286,7 +287,6 @@ public class ClientLoader implements Supplier<Client>
 		String worldListWsUrl = rspsHttpServer.getWorldListUrl(); 
 		log.info("Using local worldlist.ws URL: {}", worldListWsUrl);
 
-		// Ensure initial_class is set, preferring value from parsed jav_config if not in applet map
 		if (!appletProps.containsKey("initial_class")) {
 			if (!Strings.isNullOrEmpty(rsConfig.getInitialClass())) {
 				log.info("Initial_class not in applet_properties map, but found in RSConfig.getInitialClass(): '{}'. Adding to map.", rsConfig.getInitialClass());
@@ -307,8 +307,6 @@ public class ClientLoader implements Supplier<Client>
 		appletProps.put("port", RSPS_PORT);
 		appletProps.put("title", "Patched RSPS Client (Rev " + RSPS_REVISION + ")");
 		appletProps.put("param_25", RSPS_REVISION); // Ensure correct revision for the client
-
-		// Minimal localization for critical parameters that might point to external services
 		String[] paramsToLocalizeIfPresent = {"jav_config_url", "worldlist_ws_url", "slr_ws_url", "adverturl", "termsurl", "privacyurl"};
 		for (String paramKey : paramsToLocalizeIfPresent) {
 			if (appletProps.containsKey(paramKey)) {
