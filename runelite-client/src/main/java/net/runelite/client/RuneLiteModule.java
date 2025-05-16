@@ -67,7 +67,7 @@ import okhttp3.OkHttpClient;
 public class RuneLiteModule extends AbstractModule
 {
 	private final OkHttpClient okHttpClient;
-	private final Supplier<Applet> clientLoader;
+	private final Supplier<Client> clientLoader;
 	private final RuntimeConfigLoader configLoader;
 	private final boolean developerMode;
 	private final boolean safeMode;
@@ -141,18 +141,18 @@ public class RuneLiteModule extends AbstractModule
 		bind(Callbacks.class).to(Hooks.class);
 
 		bind(EventBus.class)
-			.toInstance(new EventBus());
+				.toInstance(new EventBus());
 
 		bind(EventBus.class)
-			.annotatedWith(Names.named("Deferred EventBus"))
-			.to(DeferredEventBus.class);
+				.annotatedWith(Names.named("Deferred EventBus"))
+				.to(DeferredEventBus.class);
 	}
 
 	@Provides
 	@Singleton
 	Applet provideApplet()
 	{
-		return clientLoader.get();
+		return (Applet) clientLoader.get();
 	}
 
 	@Provides
@@ -225,9 +225,9 @@ public class RuneLiteModule extends AbstractModule
 	@Provides
 	@Singleton
 	TelemetryClient provideTelemetry(
-		OkHttpClient okHttpClient,
-		Gson gson,
-		@Named("runelite.api.base") HttpUrl apiBase)
+			OkHttpClient okHttpClient,
+			Gson gson,
+			@Named("runelite.api.base") HttpUrl apiBase)
 	{
 		return disableTelemetry ? null : new TelemetryClient(okHttpClient, gson, apiBase);
 	}

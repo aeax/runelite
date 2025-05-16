@@ -58,7 +58,19 @@ class RSAppletStub implements AppletStub
 	@Override
 	public URL getDocumentBase()
 	{
-		return getCodeBase();
+		try
+		{
+			// Force the document base host to 127.0.0.1 so that the client's internal
+			// checkHost() logic (which allows 127.0.0.1) succeeds, even though the
+			// actual gamepack is loaded from a local file URL.
+			URL url = new URL("http://127.0.0.1/");
+			System.out.println("DEBUG: getDocumentBase forced to: " + url);
+			return url;
+		}
+		catch (MalformedURLException e)
+		{
+			return null;
+		}
 	}
 
 	@Override
@@ -66,10 +78,13 @@ class RSAppletStub implements AppletStub
 	{
 		try
 		{
-			return new URL(config.getCodeBase());
+			URL url = new URL(config.getCodeBase());
+			System.out.println("DEBUG: getCodeBase called, returning: " + url);
+			return url;
 		}
 		catch (MalformedURLException ex)
 		{
+			System.out.println("DEBUG: getCodeBase error: " + ex.getMessage());
 			return null;
 		}
 	}
@@ -77,7 +92,12 @@ class RSAppletStub implements AppletStub
 	@Override
 	public String getParameter(String name)
 	{
-		return config.getAppletProperties().get(name);
+		String value = config.getAppletProperties().get(name);
+		if (name.equals("port") || name.equals("server_port") || name.equals("worldhost") || 
+			name.equals("address") || name.equals("server_ip")) {
+			System.out.println("DEBUG: getParameter: " + name + " = " + value);
+		}
+		return value;
 	}
 
 	@Override
@@ -112,8 +132,21 @@ class RSAppletStub implements AppletStub
 			@Override
 			public void showDocument(URL url)
 			{
+				// Log all document show requests for debugging
+				System.out.println("showDocument called with URL: " + url);
+				
+				// Check the full URL string for the error_game_invalidhost pattern
+				if (url.toString().contains("error_game_invalidhost"))
+				{
+					System.out.println("Intercepted error_game_invalidhost error. Ignoring and continuing. Full URL: " + url);
+					return;
+				}
+				
 				if (url.getPath().startsWith("/error_game_"))
 				{
+					// Log ALL error_game_ situations for debugging
+					System.out.println("ERROR HANDLER - URL path: " + url.getPath() + ", full URL: " + url);
+					
 					try
 					{
 						RuntimeConfig rtc = runtimeConfigLoader.get();

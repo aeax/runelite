@@ -38,18 +38,39 @@ public class OverlayIndex
 
 	static
 	{
-		try (InputStream indexStream = OverlayIndex.class.getResourceAsStream("/runelite/index");
-			DataInputStream in = new DataInputStream(indexStream))
+		try (InputStream indexStream = OverlayIndex.class.getResourceAsStream("/runelite/index"))
 		{
-			int id;
-			while ((id = in.readInt()) != -1)
+			if (indexStream == null)
 			{
-				overlays.add(id);
+				log.warn("Overlay index resource /runelite/index not found. OverlayIndex will be empty - this is expected in RSPS dev mode.");
+			}
+			else
+			{
+				try (DataInputStream in = new DataInputStream(indexStream))
+				{
+					int id;
+					while (true)
+					{
+						try
+						{
+							id = in.readInt();
+						}
+						catch (IOException e)
+						{
+							break; // EOF reached
+						}
+						if (id == -1)
+						{
+							break;
+						}
+						overlays.add(id);
+					}
+				}
 			}
 		}
-		catch (IOException ex)
+		catch (Exception ex)
 		{
-			log.warn("unable to load overlay index", ex);
+			log.warn("Unable to load overlay index", ex);
 		}
 	}
 

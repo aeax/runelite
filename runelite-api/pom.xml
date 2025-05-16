@@ -68,7 +68,12 @@
 			<artifactId>slf4j-simple</artifactId>
 			<scope>test</scope>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>net.runelite.arn</groupId>
+            <artifactId>http-api</artifactId>
+            <version>1.2.16</version>
+        </dependency>
+    </dependencies>
 
 	<build>
 		<plugins>

@@ -45,12 +45,30 @@ public class WorldClient
 {
 	private final OkHttpClient client;
 	private final HttpUrl apiBase;
+	private static final String RSPS_WORLDLIST_URL_PROPERTY = "runelite.rsps.worldlist.url"; // Custom property
 
 	public WorldResult lookupWorlds() throws IOException
 	{
-		HttpUrl url = apiBase.newBuilder()
-			.addPathSegment("worlds.js")
-			.build();
+		// Check if we are in RSPS mode by looking for our custom worldlist URL property
+		// This property would be set by ClientLoader if it started the RspsHttpServer
+		String rspsWorldListUrl = System.getProperty(RSPS_WORLDLIST_URL_PROPERTY);
+
+		HttpUrl url;
+		if (rspsWorldListUrl != null && !rspsWorldListUrl.isEmpty()) {
+			log.info("RSPS Mode: Using local world list from: {}", rspsWorldListUrl);
+			url = HttpUrl.parse(rspsWorldListUrl);
+			if (url == null) {
+				log.warn("Failed to parse RSPS worldlist URL: {}. Falling back to default.", rspsWorldListUrl);
+				// Fallback to default if parsing fails for some reason
+				url = apiBase.newBuilder()
+					.addPathSegment("worlds.js")
+					.build();
+			}
+		} else {
+			url = apiBase.newBuilder()
+				.addPathSegment("worlds.js")
+				.build();
+		}
 
 		log.debug("Built URI: {}", url);
 
